@@ -1,0 +1,9 @@
+.calculator {
+  display: flex;
+  flex-direction: column;
+}
+
+.keypad {
+  display: flex;
+  flex-direction: column;
+}
