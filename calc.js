@@ -46,37 +46,63 @@ function clearText(display) {
 }
 
 const display = document.getElementById('display');
+var equation = "";
+var eq_pressed = false;
 
 const keys = document.querySelectorAll('.num');
 current_text = display.textContent;
 keys.forEach(key => {
   key.addEventListener('click', () => {
-    current_text = addText(display, current_text, key.getAttribute('data-num'));
+    if (eq_pressed) {
+      current_text = setText(display, key.getAttribute('data-num'));
+      equation = key.getAttribute('data-num');
+      eq_pressed = false;
+    } else if (equation.search(/[-+*/]$/) != -1) {
+      current_text = setText(display, key.getAttribute('data-num'));
+      equation += key.getAttribute('data-num');
+    } else {
+      current_text = addText(display, current_text, key.getAttribute('data-num'));
+      equation += key.getAttribute('data-num');
+    }
   });
 });
 
 document.getElementById('clear').addEventListener('click', () => {
   current_text = clearText(display);
+  equation = "";
 });
 
-const eq_pattern = /[0-9]+[-+*/][0-9]+/
+const eq_pattern = /[0-9]+[-+*/][0-9]+/;
 const op_pattern = /[-+*/]/;
-const num_pattern = /[0-9]+/
-document.getElementById('=').addEventListener('click', () => {
-  while (current_text.search(eq_pattern) != -1) {
-    var operator_loc = current_text.search(op_pattern);
-    var a = parseInt(current_text.slice(0, operator_loc));
-    var op = current_text.slice(operator_loc, operator_loc + 1);
-    current_text = current_text.slice(operator_loc + 1);
-    if (current_text.search(op_pattern) == -1) {
-      var b = parseInt(current_text);
-      var sol = operate(op, a, b);
-      current_text = sol.toString();
-    } else {
-      var b = parseInt(current_text.slice(0, current_text.search(op_pattern)));
-      var sol = operate(op, a, b);
-      current_text = sol.toString() + current_text.slice(current_text.search(op_pattern));
-    }
+
+const equals = document.getElementById('eq');
+equals.addEventListener('click', () => {
+  if (equation.search(eq_pattern) != -1) {
+    var op_loc = equation.search(op_pattern);
+    var op = equation.slice(op_loc, op_loc + 1);
+    var a = parseFloat(equation.slice(0, op_loc));
+    var b = parseFloat(equation.slice(op_loc + 1));
+    equation = (operate(op, a, b)).toString();
+    current_text = setText(display, equation);
+    eq_pressed = true;
   }
-  display.textContent = current_text;
+})
+
+const operators = document.querySelectorAll('.op');
+operators.forEach(operator => {
+  operator.addEventListener('click', () => {
+    if (equation.search(/[-+*/]$/) != -1) {
+      equation = equation.slice(0, -1) + operator.getAttribute('data-op');
+    } else if (equation.search(eq_pattern) == -1) {
+      equation += operator.getAttribute('data-op');
+      current_text = '';
+    } else {
+      var op_loc = equation.search(op_pattern);
+      var op = equation.slice(op_loc, op_loc + 1);
+      var a = parseFloat(equation.slice(0, op_loc));
+      var b = parseFloat(equation.slice(op_loc + 1));
+      equation = operate(op, a, b) + operator.getAttribute('data-op');
+      current_text = setText(display, operate(op, a, b));
+    }
+  });
 });
