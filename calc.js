@@ -11,7 +11,7 @@ function multiply(a, b) {
 }
 
 function divide(a, b) {
-  return a / b;
+  return (Math.round((a / b) * 1000) / 1000);
 }
 
 function operate(operator, a, b) {
@@ -45,7 +45,7 @@ function clearText(display) {
   return '';
 }
 
-const display = document.getElementById('display');
+const display = document.getElementById('display-text');
 var equation = "";
 var eq_pressed = false;
 
@@ -53,16 +53,18 @@ const keys = document.querySelectorAll('.num');
 current_text = display.textContent;
 keys.forEach(key => {
   key.addEventListener('click', () => {
-    if (eq_pressed) {
-      current_text = setText(display, key.getAttribute('data-num'));
-      equation = key.getAttribute('data-num');
-      eq_pressed = false;
-    } else if (equation.search(/[-+*/]$/) != -1) {
-      current_text = setText(display, key.getAttribute('data-num'));
-      equation += key.getAttribute('data-num');
-    } else {
-      current_text = addText(display, current_text, key.getAttribute('data-num'));
-      equation += key.getAttribute('data-num');
+    if (!(((current_text.length * (screen.width * .025)) > (screen.width * .23)))) {
+      if (eq_pressed) {
+        current_text = setText(display, key.getAttribute('data-num'));
+        equation = key.getAttribute('data-num');
+        eq_pressed = false;
+      } else if (equation.search(/[-+*/]$/) != -1) {
+        current_text = setText(display, key.getAttribute('data-num'));
+        equation += key.getAttribute('data-num');
+      } else {
+        current_text = addText(display, current_text, key.getAttribute('data-num'));
+        equation += key.getAttribute('data-num');
+      }
     }
   });
 });
@@ -82,7 +84,10 @@ equals.addEventListener('click', () => {
     var op = equation.slice(op_loc, op_loc + 1);
     var a = parseFloat(equation.slice(0, op_loc));
     var b = parseFloat(equation.slice(op_loc + 1));
-    equation = (operate(op, a, b)).toString();
+    equation = operate(op, a, b).toString();
+    if ((((equation.length * (screen.width * .025)) > (screen.width * .23)))) {
+      equation = (parseInt(equation).toExponential(3)).toString()
+    }
     current_text = setText(display, equation);
     eq_pressed = true;
   }
@@ -91,6 +96,7 @@ equals.addEventListener('click', () => {
 const operators = document.querySelectorAll('.op');
 operators.forEach(operator => {
   operator.addEventListener('click', () => {
+    eq_pressed = false;
     if (equation.search(/[-+*/]$/) != -1) {
       equation = equation.slice(0, -1) + operator.getAttribute('data-op');
     } else if (equation.search(eq_pattern) == -1) {
@@ -101,7 +107,11 @@ operators.forEach(operator => {
       var op = equation.slice(op_loc, op_loc + 1);
       var a = parseFloat(equation.slice(0, op_loc));
       var b = parseFloat(equation.slice(op_loc + 1));
-      equation = operate(op, a, b) + operator.getAttribute('data-op');
+      equation = operate(op, a, b).toString();
+      if ((((equation.length * (screen.width * .025)) > (screen.width * .23)))) {
+        equation = (parseInt(equation).toExponential(3)).toString()
+      }
+      equation += operator.getAttribute('data-op');
       current_text = setText(display, operate(op, a, b));
     }
   });
